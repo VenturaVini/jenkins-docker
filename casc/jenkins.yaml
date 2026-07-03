@@ -47,6 +47,35 @@ jobs:
       }
 
   - script: |
+      pipelineJob('robo-scraper') {
+        description('Web scraper com logs estruturados (JSON lines): raspa citacoes de quotes.toscrape.com e salva em /robos/robo-scraper/saida/quotes.json. Aceita disparo por webhook (token: robo-scraper).')
+        definition {
+          cps {
+            sandbox(true)
+            script('''
+              pipeline {
+                agent any
+                triggers {
+                  GenericTrigger(
+                    token: 'robo-scraper',
+                    causeString: 'Disparado via webhook (ex.: n8n)'
+                  )
+                }
+                options { timestamps() }
+                stages {
+                  stage('Rodar scraper') {
+                    steps {
+                      sh 'docker run --rm --volumes-from jenkins -w /robos/robo-scraper python:3.12-slim sh -c "pip install -q -r requirements.txt && python main.py"'
+                    }
+                  }
+                }
+              }
+            ''')
+          }
+        }
+      }
+
+  - script: |
       pipelineJob('robo-git-exemplo') {
         description('Exemplo MODO GIT: clona um repositorio git e roda o script Python dele dentro de um container python:3.12-slim. Preencha os parametros ao disparar o build.')
         parameters {

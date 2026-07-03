@@ -1,0 +1,30 @@
+// MODO GIT: clona o repositório e roda o robô dentro de um container Python.
+// Coloque este Jenkinsfile na raiz do repositório do robô e crie um job
+// "Pipeline from SCM" apontando para o repo — ou use o job robo-git-exemplo.
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'REPO_URL', defaultValue: 'https://github.com/usuario/meu-robo.git', description: 'URL do repositório git')
+        string(name: 'BRANCH', defaultValue: 'main', description: 'Branch a usar')
+        string(name: 'ENTRYPOINT', defaultValue: 'main.py', description: 'Script de entrada (relativo à raiz do repo)')
+    }
+
+    options { timestamps() }
+
+    stages {
+        stage('Checkout do git') {
+            steps {
+                git url: params.REPO_URL, branch: params.BRANCH
+            }
+        }
+        stage('Rodar em container Python') {
+            steps {
+                // O workspace do Jenkins é compartilhado com o container de build
+                // via --volumes-from (workspace vive no volume jenkins_home).
+                // O requirements.txt é procurado na pasta do script de entrada.
+                sh 'docker run --rm --volumes-from jenkins -w "$WORKSPACE/$(dirname $ENTRYPOINT)" python:3.12-slim sh -c "if [ -f requirements.txt ]; then pip install -q -r requirements.txt; fi; python $(basename $ENTRYPOINT)"'
+            }
+        }
+    }
+}

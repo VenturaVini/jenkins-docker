@@ -1,0 +1,11 @@
+configuration-as-code
+job-dsl
+workflow-aggregator
+pipeline-stage-view
+git
+docker-workflow
+docker-plugin
+credentials-binding
+generic-webhook-trigger
+timestamper
+locale

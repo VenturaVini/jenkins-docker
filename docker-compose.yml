@@ -1,0 +1,57 @@
+services:
+  jenkins:
+    build: .
+    image: jenkins-robos:lts
+    container_name: jenkins
+    restart: unless-stopped
+    ports:
+      # Porta web fora da faixa comum (8080/8081 costumam estar ocupadas).
+      - "${JENKINS_PORT:-3878}:8080"
+      # Porta de agentes externos (JNLP). Só é usada se você conectar
+      # agentes de outras máquinas; os builds locais não precisam dela.
+      - "${JENKINS_AGENT_PORT:-3879}:50000"
+    group_add:
+      # GID do grupo dono de /var/run/docker.sock no host.
+      # Descubra com: stat -c %g /var/run/docker.sock
+      - "${DOCKER_GID:-988}"
+    environment:
+      JENKINS_ADMIN_USER: ${JENKINS_ADMIN_USER:-admin}
+      JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:?defina no .env}
+      JENKINS_URL: ${JENKINS_URL:-http://localhost:8081/}
+      CASC_JENKINS_CONFIG: /var/jenkins_conf/casc
+      # ALLOW_LOCAL_CHECKOUT permite jobs clonarem repositórios git locais
+      # (ex.: file:///robos/meu-robo), combinando os modos git e local.
+      JAVA_OPTS: >-
+        -Djenkins.install.runSetupWizard=false
+        -Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true
+        -Xmx1024m
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./casc:/var/jenkins_conf/casc:ro
+      # Pasta de robôs/projetos locais do servidor, visível em /robos.
+      # Containers de build enxergam essa pasta usando --volumes-from jenkins.
+      - ${ROBOS_DIR:-../robos}:/robos
+    networks:
+      - jenkins_net
+      - n8n_app_network
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/login"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+volumes:
+  jenkins_home:
+
+networks:
+  jenkins_net:
+  # Rede do n8n já existente no servidor. Se a máquina não tiver n8n,
+  # crie a rede com: docker network create n8n_app_network
+  n8n_app_network:
+    external: true

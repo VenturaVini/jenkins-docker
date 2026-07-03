@@ -1,0 +1,85 @@
+jenkins:
+  systemMessage: "Jenkins para robôs Python em containers — provisionado via Configuration as Code."
+  numExecutors: 2
+  mode: NORMAL
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_USER}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+  location:
+    url: "${JENKINS_URL}"
+
+jobs:
+  - script: |
+      pipelineJob('robo-local-exemplo') {
+        description('Exemplo MODO LOCAL: roda o robo que esta na pasta /robos/robo-exemplo do servidor dentro de um container python:3.12-slim. Tambem aceita disparo por webhook (token: robo-local-exemplo), pronto para o n8n.')
+        definition {
+          cps {
+            sandbox(true)
+            script('''
+              pipeline {
+                agent any
+                triggers {
+                  GenericTrigger(
+                    token: 'robo-local-exemplo',
+                    causeString: 'Disparado via webhook (ex.: n8n)'
+                  )
+                }
+                options { timestamps() }
+                stages {
+                  stage('Rodar robo local') {
+                    steps {
+                      sh 'docker run --rm --volumes-from jenkins -w /robos/robo-exemplo python:3.12-slim sh -c "pip install -q -r requirements.txt && python main.py"'
+                    }
+                  }
+                }
+              }
+            ''')
+          }
+        }
+      }
+
+  - script: |
+      pipelineJob('robo-git-exemplo') {
+        description('Exemplo MODO GIT: clona um repositorio git e roda o script Python dele dentro de um container python:3.12-slim. Preencha os parametros ao disparar o build.')
+        parameters {
+          stringParam('REPO_URL', 'https://github.com/VenturaVini/jenkins-docker.git', 'URL do repositorio git do robo')
+          stringParam('BRANCH', 'main', 'Branch a usar')
+          stringParam('ENTRYPOINT', 'exemplos/robo-exemplo/main.py', 'Script Python de entrada (relativo a raiz do repo). O requirements.txt e procurado na pasta do script.')
+        }
+        definition {
+          cps {
+            sandbox(true)
+            script('''
+              pipeline {
+                agent any
+                parameters {
+                  string(name: 'REPO_URL', defaultValue: 'https://github.com/VenturaVini/jenkins-docker.git', description: 'URL do repositorio git do robo')
+                  string(name: 'BRANCH', defaultValue: 'main', description: 'Branch a usar')
+                  string(name: 'ENTRYPOINT', defaultValue: 'exemplos/robo-exemplo/main.py', description: 'Script Python de entrada (relativo a raiz do repo). O requirements.txt e procurado na pasta do script.')
+                }
+                options { timestamps() }
+                stages {
+                  stage('Checkout do git') {
+                    steps {
+                      git url: params.REPO_URL, branch: params.BRANCH
+                    }
+                  }
+                  stage('Rodar em container Python') {
+                    steps {
+                      sh 'docker run --rm --volumes-from jenkins -w "$WORKSPACE/$(dirname $ENTRYPOINT)" python:3.12-slim sh -c "if [ -f requirements.txt ]; then pip install -q -r requirements.txt; fi; python $(basename $ENTRYPOINT)"'
+                    }
+                  }
+                }
+              }
+            ''')
+          }
+        }
+      }

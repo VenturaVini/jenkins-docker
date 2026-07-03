@@ -1,0 +1,21 @@
+// MODO LOCAL: roda um robô que está na pasta /robos do servidor (montada no Jenkins).
+// Os containers de build enxergam /robos via --volumes-from jenkins.
+pipeline {
+    agent any
+
+    // Permite disparar por webhook (ex.: n8n):
+    // POST http://jenkins:8080/generic-webhook-trigger/invoke?token=meu-robo
+    triggers {
+        GenericTrigger(token: 'meu-robo', causeString: 'Disparado via webhook')
+    }
+
+    options { timestamps() }
+
+    stages {
+        stage('Rodar robô local') {
+            steps {
+                sh 'docker run --rm --volumes-from jenkins -w /robos/robo-exemplo python:3.12-slim sh -c "pip install -q -r requirements.txt && python main.py"'
+            }
+        }
+    }
+}

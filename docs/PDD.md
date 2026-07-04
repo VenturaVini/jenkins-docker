@@ -67,6 +67,10 @@ Decisões técnicas:
 2. Fluxo n8n usa nó HTTP Request: `POST http://jenkins:8080/generic-webhook-trigger/invoke?token=<token-do-job>` (comunicação interna pela rede `n8n_app_network`).
 3. Opcionalmente o pipeline notifica o n8n ao terminar: `curl -X POST http://n8n:5678/webhook/<fluxo>` no bloco `post`.
 
+### 4.4 Operação via Telegram
+
+Implementada em 03/07/2026: bot do Telegram (workflow no n8n) para listar, disparar e monitorar os jobs pelo celular. Processo próprio em [PDD-bot-telegram.md](PDD-bot-telegram.md); instalação em [n8n/README.md](../n8n/README.md).
+
 ## 5. Ambiente e acesso
 
 | Campo | Valor |

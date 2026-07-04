@@ -62,6 +62,7 @@ O Jenkins está na rede `n8n_app_network`, então n8n e Jenkins se enxergam pelo
 
 - **n8n dispara um job**: nó *HTTP Request* com `POST http://jenkins:8080/generic-webhook-trigger/invoke?token=robo-local-exemplo` (plugin Generic Webhook Trigger; cada job define seu token no bloco `triggers`). Observação: o trigger é registrado na primeira execução do job — rode o job uma vez manualmente antes de usar o webhook.
 - **Jenkins avisa o n8n**: no fim do pipeline, `sh 'curl -X POST http://n8n:5678/webhook/meu-fluxo'` (bloco `post { success { ... } }`).
+- **🤖 Bot do Telegram**: a pasta [n8n/](n8n/) traz um bot completo (workflow do n8n) para listar, disparar e monitorar os jobs pelo celular — botões inline, aviso quando o build termina, suporte a vários Jenkins. Veja [n8n/README.md](n8n/README.md) e o [PDD do bot](docs/PDD-bot-telegram.md).
 
 ## Estrutura
 
@@ -72,7 +73,9 @@ plugins.txt          # plugins pré-instalados
 casc/jenkins.yaml    # configuração automática (admin, segurança, jobs de exemplo)
 .env.example         # modelo de configuração por máquina
 exemplos/            # Jenkinsfiles de referência (modo local e modo git)
+n8n/                 # bot do Telegram (workflow n8n): template, .env.example e deploy.sh
 docs/PDD.md          # Documento de Definição de Processo do ambiente
+docs/PDD-bot-telegram.md  # PDD do bot Telegram <-> Jenkins
 ```
 
 ## Troubleshooting

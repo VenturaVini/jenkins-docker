@@ -1,0 +1,13 @@
+// Pipeline deste robô (modo local). O job robo-local-exemplo já roda isto,
+// mas este arquivo fica aqui como referência para novos robôs.
+pipeline {
+    agent any
+    options { timestamps() }
+    stages {
+        stage('Rodar robô') {
+            steps {
+                sh 'docker run --rm --volumes-from jenkins -w /robos/robo-exemplo python:3.12-slim sh -c "pip install -q -r requirements.txt && python main.py"'
+            }
+        }
+    }
+}

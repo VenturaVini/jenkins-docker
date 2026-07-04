@@ -3,57 +3,25 @@
 Raspa citações de https://quotes.toscrape.com (site público feito para
 prática de scraping) e salva o resultado em saida/quotes.json.
 
-Cada linha de log é um JSON com timestamp, nível, evento e campos extras,
-pronto para ser ingerido por Loki/Elastic ou filtrado com jq.
+Cada evento sai em duas linhas: uma legível (data/hora local) para acompanhar
+no Jenkins e uma JSON (para Loki/Elastic/jq). Ver logger_robo.py.
 """
-import datetime
 import json
-import logging
 import sys
 import time
-import uuid
 from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
+
+from logger_robo import criar_logger
 
 ROBO = "robo-scraper"
 BASE_URL = "https://quotes.toscrape.com"
 MAX_PAGINAS = 3
 SAIDA = Path(__file__).parent / "saida" / "quotes.json"
 
-RUN_ID = uuid.uuid4().hex[:12]
-
-
-class JsonFormatter(logging.Formatter):
-    """Formata cada registro de log como uma linha JSON."""
-
-    def format(self, record: logging.LogRecord) -> str:
-        linha = {
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "nivel": record.levelname,
-            "robo": ROBO,
-            "run_id": RUN_ID,
-            "evento": record.getMessage(),
-        }
-        extras = getattr(record, "campos", None)
-        if extras:
-            linha.update(extras)
-        if record.exc_info:
-            linha["excecao"] = self.formatException(record.exc_info)
-        return json.dumps(linha, ensure_ascii=False)
-
-
-def configurar_logger() -> logging.Logger:
-    logger = logging.getLogger(ROBO)
-    logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(JsonFormatter())
-    logger.addHandler(handler)
-    return logger
-
-
-log = configurar_logger()
+log = criar_logger(ROBO)
 
 
 def raspar_pagina(sessao: requests.Session, pagina: int) -> tuple[list[dict], bool]:

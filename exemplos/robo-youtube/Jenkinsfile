@@ -1,0 +1,17 @@
+pipeline {
+  agent any
+  triggers {
+    GenericTrigger(
+      token: 'robo-youtube',
+      causeString: 'Disparado via webhook (ex.: n8n)'
+    )
+  }
+  options { timestamps() }
+  stages {
+    stage('Buscar videos no YouTube') {
+      steps {
+        sh 'docker run --rm --volumes-from jenkins -w /robos/robo-youtube python:3.12-slim sh -c "pip install -q -r requirements.txt && python main.py"'
+      }
+    }
+  }
+}

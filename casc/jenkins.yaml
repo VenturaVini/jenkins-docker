@@ -76,6 +76,35 @@ jobs:
       }
 
   - script: |
+      pipelineJob('robo-youtube') {
+        description('Busca videos no YouTube de um tema (aleatorio ou fixado no config.json), visita os N primeiros um por um com timer entre cada e salva em /robos/robo-youtube/saida/videos.json. Logs com data/hora local + JSON estruturado. Aceita disparo por webhook (token: robo-youtube).')
+        definition {
+          cps {
+            sandbox(true)
+            script('''
+              pipeline {
+                agent any
+                triggers {
+                  GenericTrigger(
+                    token: 'robo-youtube',
+                    causeString: 'Disparado via webhook (ex.: n8n)'
+                  )
+                }
+                options { timestamps() }
+                stages {
+                  stage('Buscar videos no YouTube') {
+                    steps {
+                      sh 'docker run --rm --volumes-from jenkins -w /robos/robo-youtube python:3.12-slim sh -c "pip install -q -r requirements.txt && python main.py"'
+                    }
+                  }
+                }
+              }
+            ''')
+          }
+        }
+      }
+
+  - script: |
       pipelineJob('robo-git-exemplo') {
         description('Exemplo MODO GIT: clona um repositorio git e roda o script Python dele dentro de um container python:3.12-slim. Preencha os parametros ao disparar o build.')
         parameters {

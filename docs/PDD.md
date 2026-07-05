@@ -1,7 +1,7 @@
 # PDD — Documento de Definição de Processo
 
 **Processo:** Orquestração de robôs Python em containers via Jenkins
-**Versão:** 1.0 — 02/07/2026
+**Versão:** 1.1 — 05/07/2026 (`ROBOS_DIR` padrão agora é `./exemplos`: o clone sobe funcionando em qualquer máquina, sem criar pasta de robôs)
 **Responsável:** Vinícius Ventura (vini.ventura98@gmail.com)
 
 ---
@@ -34,7 +34,7 @@ Padronizar a execução de robôs (automações em Python) em um servidor Linux 
 │  │     n8n     │   │ postgres │   │ redis │   (já existentes)          │
 │  └─────────────┘   └──────────┘   └───────┘                            │
 │                                                                        │
-│  /root/projetos/robos ──montada como /robos no Jenkins                 │
+│  pasta de robôs do host (ROBOS_DIR) ──montada como /robos no Jenkins   │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -99,5 +99,5 @@ Implementada em 03/07/2026: bot do Telegram (workflow no n8n) para listar, dispa
 2. `git clone https://github.com/VenturaVini/jenkins-docker.git && cd jenkins-docker`
 3. `cp .env.example .env` e preencher senha, IP e `DOCKER_GID` (`stat -c %g /var/run/docker.sock`).
 4. `docker network create n8n_app_network` (se a máquina não tiver n8n).
-5. Criar a pasta de robôs (padrão: `../robos`).
-6. `docker compose up -d --build`.
+5. `docker compose up -d --build` — sobe já com os robôs de exemplo (`ROBOS_DIR` padrão `./exemplos`).
+6. Quando tiver robôs próprios, apontar `ROBOS_DIR` no `.env` para a pasta deles e rodar `docker compose up -d` de novo.

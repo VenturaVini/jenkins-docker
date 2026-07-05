@@ -47,7 +47,7 @@ const HELP = `<b>🤖 Jenkins Bot — comandos</b>
 /jobs — lista os jobs com botões (toque, sem digitar)
 /run <code>job</code> — dispara um build (aviso quando terminar)
 /run <code>job PARAM=valor</code> — build com parâmetros
-/status <code>job</code> — detalhes do último build
+/status <code>job</code> — último build + histórico dos 3 últimos
 /log <code>job</code> — últimas linhas do console
 /stop <code>job</code> — aborta o build em execução
 /queue — fila de builds aguardando
@@ -124,15 +124,21 @@ async function handleCommand(cmd, args, chatId, sd) {
     try {
       last = await jenkins(inst, `/job/${encodeURIComponent(job)}/lastBuild/api/json?tree=number`);
     } catch (e) { /* job nunca buildado */ }
+    let usouDefaults = false;
     if (params.length) {
       const qs = params.map((p) => p.split('=').map(encodeURIComponent).join('=')).join('&');
       await jenkins(inst, `/job/${encodeURIComponent(job)}/buildWithParameters?${qs}`, 'POST');
     } else {
-      await jenkins(inst, `/job/${encodeURIComponent(job)}/build`, 'POST');
+      // Jobs parametrizados rejeitam /build com 400; buildWithParameters sem query usa os defaults.
+      const info = await jenkins(inst, `/job/${encodeURIComponent(job)}/api/json?tree=property[parameterDefinitions[name]]`);
+      usouDefaults = (info.property || []).some((p) => (p.parameterDefinitions || []).length);
+      await jenkins(inst, `/job/${encodeURIComponent(job)}/${usouDefaults ? 'buildWithParameters' : 'build'}`, 'POST');
     }
     sd.pendingRuns[key] = [...new Set([...(sd.pendingRuns[key] || []), chatId])];
     if (sd.lastSeen[key] === undefined) sd.lastSeen[key] = last.number || 0;
-    const p = params.length ? `\nParâmetros: <code>${esc(params.join(' '))}</code>` : '';
+    const p = params.length
+      ? `\nParâmetros: <code>${esc(params.join(' '))}</code>`
+      : usouDefaults ? '\nParâmetros: valores padrão do job.' : '';
     return { text: `🚀 Build de <code>${esc(jobLabel(inst, job))}</code> disparado!${p}\nAviso aqui quando terminar.` };
   }
 
@@ -148,8 +154,18 @@ async function handleCommand(cmd, args, chatId, sd) {
       state = `${resultEmoji(b.result)} ${b.result}`;
       dur = fmtDur(b.duration);
     }
+    let historico = '';
+    try {
+      const h = await jenkins(inst, `/job/${encodeURIComponent(job)}/api/json?tree=builds[number,result,building,timestamp,duration]{0,3}`);
+      const linhas = (h.builds || []).map((x) =>
+        x.building
+          ? `🔄 #${x.number} — em execução — ${when(x.timestamp)}`
+          : `${resultEmoji(x.result)} #${x.number} — ${x.result} — ${when(x.timestamp)} (${fmtDur(x.duration)})`
+      );
+      if (linhas.length) historico = `\n\n<b>🕘 Últimos ${linhas.length} builds:</b>\n${linhas.join('\n')}`;
+    } catch (e) { /* sem histórico */ }
     return {
-      text: `<b>📊 ${esc(jobLabel(inst, job))}</b>\n\nBuild: #${b.number}\nStatus: ${state}\nInício: ${when(b.timestamp)}\nDuração: ${dur}`,
+      text: `<b>📊 ${esc(jobLabel(inst, job))}</b>\n\nBuild: #${b.number}\nStatus: ${state}\nInício: ${when(b.timestamp)}\nDuração: ${dur}${historico}`,
       reply_markup: {
         inline_keyboard: [[
           { text: '▶️ rodar de novo', callback_data: `run ${idx} ${job}` },

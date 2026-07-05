@@ -31,7 +31,9 @@ services:
       - ./casc:/var/jenkins_conf/casc:ro
       # Pasta de robôs/projetos locais do servidor, visível em /robos.
       # Containers de build enxergam essa pasta usando --volumes-from jenkins.
-      - ${ROBOS_DIR:-../robos}:/robos
+      # O padrão ./exemplos faz o clone funcionar em qualquer máquina sem
+      # passo extra; aponte ROBOS_DIR no .env para a sua pasta de robôs.
+      - ${ROBOS_DIR:-./exemplos}:/robos
     networks:
       - jenkins_net
       - n8n_app_network

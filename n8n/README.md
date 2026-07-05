@@ -7,8 +7,8 @@ Bot de Telegram que lista, dispara e monitora jobs de um ou mais Jenkins — rod
 | Comando | Ação |
 |---|---|
 | `/jobs` | Lista os jobs com **botões inline** (▶️ rodar, 📊 status, 📜 log) — sem digitar nome |
-| `/run job [PARAM=valor ...]` | Dispara build (com parâmetros opcionais) e **avisa quando terminar** |
-| `/status job` | Último build: resultado, duração, % de progresso se em execução |
+| `/run job [PARAM=valor ...]` | Dispara build e **avisa quando terminar**. Job parametrizado sem `PARAM=` roda com os **valores padrão** |
+| `/status job` | Último build (resultado, duração, % se em execução) + **histórico dos 3 últimos builds** |
 | `/log job` | Últimas linhas do console do último build |
 | `/stop job` | Aborta o build em execução |
 | `/queue` | Fila de builds aguardando |

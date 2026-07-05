@@ -20,7 +20,7 @@ Antes do `up`, ajuste no `.env`:
 - `JENKINS_ADMIN_PASSWORD` — senha do admin;
 - `JENKINS_URL` — `http://IP_DA_MAQUINA:3878/`;
 - `DOCKER_GID` — resultado de `stat -c %g /var/run/docker.sock`;
-- `ROBOS_DIR` — pasta do host com os robôs locais (padrão `../robos`; crie-a se não existir).
+- `ROBOS_DIR` — pasta do host com os robôs locais. O padrão `./exemplos` já vem com os robôs de exemplo do repositório, então o clone funciona sem criar nada; depois aponte para a sua pasta real (ex.: `../robos`).
 
 Se a máquina **não** tiver n8n, crie a rede esperada pelo compose:
 

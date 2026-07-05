@@ -1,7 +1,7 @@
 # PDD — Documento de Definição de Processo
 
 **Processo:** Operação de robôs Jenkins via Telegram (bot no n8n)
-**Versão:** 1.0 — 03/07/2026
+**Versão:** 1.1 — 05/07/2026 (jobs parametrizados via `/run` sem parâmetros usam os valores padrão; `/status` mostra o histórico dos 3 últimos builds)
 **Responsável:** Vinícius Ventura (vini.ventura98@gmail.com)
 
 ---
@@ -53,9 +53,10 @@ Decisões técnicas:
 
 1. Usuário manda `/jobs` no grupo.
 2. Bot responde a lista com o status de cada job e botões `▶️ rodar / 📊 status / 📜 log`.
-3. Usuário toca `▶️ rodar` (ou digita `/run robo-scraper`, com `PARAM=valor` se o job for parametrizado).
-4. Bot dispara o build via API e registra o chat como interessado.
+3. Usuário toca `▶️ rodar` (ou digita `/run robo-scraper`, com `PARAM=valor` se quiser sobrescrever parâmetros).
+4. Bot dispara o build via API e registra o chat como interessado. Se o job for parametrizado e nenhum `PARAM=` for passado, o bot usa `buildWithParameters` sem query string, que executa com os **valores padrão** do job (chamar `/build` nesses jobs devolve HTTP 400).
 5. Quando o build termina, o bot avisa no mesmo chat: resultado, duração e, em caso de falha, as últimas linhas do console.
+6. `/status job` (ou tocar no nome do job em `/jobs`) mostra o último build em detalhe e o **histórico dos 3 últimos** (resultado, número, data e duração de cada um).
 
 ### 4.2 Monitoramento contínuo (`/watch`)
 

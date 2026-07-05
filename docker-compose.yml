@@ -19,11 +19,16 @@ services:
       JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:?defina no .env}
       JENKINS_URL: ${JENKINS_URL:-http://localhost:8081/}
       CASC_JENKINS_CONFIG: /var/jenkins_conf/casc
+      # Fuso horário do Brasil no container e na JVM (datas de builds,
+      # cron dos jobs e timestamps do console em horário local).
+      TZ: America/Sao_Paulo
       # ALLOW_LOCAL_CHECKOUT permite jobs clonarem repositórios git locais
       # (ex.: file:///robos/meu-robo), combinando os modos git e local.
       JAVA_OPTS: >-
         -Djenkins.install.runSetupWizard=false
         -Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true
+        -Duser.timezone=America/Sao_Paulo
+        -Dorg.apache.commons.jelly.tags.fmt.timeZone=America/Sao_Paulo
         -Xmx1024m
     volumes:
       - jenkins_home:/var/jenkins_home

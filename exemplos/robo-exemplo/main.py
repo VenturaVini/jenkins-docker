@@ -1,7 +1,7 @@
 """Robô de exemplo: prova que o Jenkins consegue rodar Python em container.
 
-Logs no padrão dos robôs: linha legível com data/hora local + linha JSON
-estruturada (ver logger_robo.py).
+Logs no padrão dos robôs: linhas amigáveis com emoji, pensadas para
+qualquer pessoa acompanhar no Jenkins (ver logger_robo.py).
 """
 import platform
 import sys

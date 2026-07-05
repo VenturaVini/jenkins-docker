@@ -1,10 +1,10 @@
-"""Robô de web scraping com logs estruturados (JSON lines).
+"""Robô de web scraping com logs amigáveis.
 
 Raspa citações de https://quotes.toscrape.com (site público feito para
 prática de scraping) e salva o resultado em saida/quotes.json.
 
-Cada evento sai em duas linhas: uma legível (data/hora local) para acompanhar
-no Jenkins e uma JSON (para Loki/Elastic/jq). Ver logger_robo.py.
+Cada evento vira uma linha amigável com emoji, fácil de acompanhar no
+Jenkins (linha JSON opcional via LOG_JSON=1). Ver logger_robo.py.
 """
 import json
 import sys
